@@ -115,6 +115,7 @@ export default function (pi: ExtensionAPI) {
 			setExtensionStatusesGetter(fn) {
 				getActiveExtensionStatuses = fn ?? (() => new Map());
 			},
+			getThinkingLevel,
 		});
 		installEditor(ctx);
 		stopRefreshInterval = startProjectRefreshInterval(currentConfig.projectRefreshIntervalMs, () =>

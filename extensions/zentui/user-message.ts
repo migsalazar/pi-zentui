@@ -6,11 +6,7 @@ import {
 	visibleWidth,
 } from "@earendil-works/pi-tui";
 import type { PolishedTuiConfig } from "./config";
-import {
-	EDITOR_ACCENT_FALLBACK,
-	EDITOR_BORDER_FALLBACK,
-	renderStyleForSourceOrFallback,
-} from "./style";
+import { EDITOR_BORDER_FALLBACK, renderStyleForSourceOrFallback } from "./style";
 
 const OSC133_ZONE_START = "\x1b]133;A\x07";
 const OSC133_ZONE_END = "\x1b]133;B\x07";
@@ -72,8 +68,8 @@ function makeMarkdownTheme(theme: Theme | undefined): MarkdownTheme {
 		code: (text) => themeFg(theme, "mdCode", text),
 		codeBlock: (text) => themeFg(theme, "mdCodeBlock", text),
 		codeBlockBorder: (text) => themeFg(theme, "mdCodeBlockBorder", text),
-		quote: (text) => themeFg(theme, "mdQuote", text),
-		quoteBorder: (text) => themeFg(theme, "mdQuoteBorder", text),
+		quote: (text) => themeFg(theme, "userMessageText", text),
+		quoteBorder: () => "",
 		hr: (text) => themeFg(theme, "mdHr", text),
 		listBullet: (text) => themeFg(theme, "mdListBullet", text),
 		bold: (text) => (theme ? theme.bold(text) : text),
@@ -89,26 +85,9 @@ function fillLine(content: string, width: number): string {
 	return `${truncated}${pad}`;
 }
 
-function renderPromptBoxLine(
-	line: string,
-	width: number,
-	theme: Theme | undefined,
-	config: PolishedTuiConfig,
-): string {
+function renderPromptBoxLine(line: string, width: number): string {
 	if (width <= 0) return "";
-	const rail = `${
-		theme
-			? renderStyleForSourceOrFallback(
-					theme,
-					config.colorSources.userMessages,
-					config.colors.editorAccent,
-					EDITOR_ACCENT_FALLBACK,
-					"│",
-				)
-			: "│"
-	} `;
-	const contentWidth = Math.max(0, width - visibleWidth(rail));
-	return truncateToWidth(`${rail}${fillLine(line, contentWidth)}`, width, "");
+	return truncateToWidth(fillLine(line, width), width, "");
 }
 
 function renderZentuiUserMessage(
@@ -121,20 +100,7 @@ function renderZentuiUserMessage(
 	if (text === undefined) return undefined;
 	if (width <= 0) return [""];
 
-	const railWidth = visibleWidth(
-		`${
-			theme
-				? renderStyleForSourceOrFallback(
-						theme,
-						config.colorSources.userMessages,
-						config.colors.editorAccent,
-						EDITOR_ACCENT_FALLBACK,
-						"│",
-					)
-				: "│"
-		} `,
-	);
-	const contentWidth = Math.max(1, width - railWidth);
+	const contentWidth = Math.max(1, width);
 	const renderer = new Markdown(text, 0, 0, makeMarkdownTheme(theme), {
 		color: (content) => themeFg(theme, "userMessageText", content),
 	});
@@ -152,9 +118,7 @@ function renderZentuiUserMessage(
 
 	return [
 		truncateToWidth(border, width, ""),
-		renderPromptBoxLine("", width, theme, config),
-		...contentLines.map((line) => renderPromptBoxLine(line, width, theme, config)),
-		renderPromptBoxLine("", width, theme, config),
+		...contentLines.map((line) => renderPromptBoxLine(line, width)),
 		truncateToWidth(border, width, ""),
 	];
 }

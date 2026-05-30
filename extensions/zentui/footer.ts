@@ -42,6 +42,33 @@ function prependStatusArea(base: string, statusText: string, separator: string):
 	return `${statusText}${separator}${base}`;
 }
 
+function thinkingStyle(config: PolishedTuiConfig, level: string): string {
+	switch (level.toLowerCase()) {
+		case "minimal":
+			return (
+				config.colors.editorThinkingMinimal ?? config.colors.editorThinking ?? config.colors.tokens
+			);
+		case "low":
+			return (
+				config.colors.editorThinkingLow ?? config.colors.editorThinking ?? config.colors.tokens
+			);
+		case "medium":
+			return (
+				config.colors.editorThinkingMedium ?? config.colors.editorThinking ?? config.colors.tokens
+			);
+		case "high":
+			return (
+				config.colors.editorThinkingHigh ?? config.colors.editorThinking ?? config.colors.tokens
+			);
+		case "xhigh":
+			return (
+				config.colors.editorThinkingXhigh ?? config.colors.editorThinking ?? config.colors.tokens
+			);
+		default:
+			return config.colors.editorThinking ?? config.colors.tokens;
+	}
+}
+
 function composeBuiltInFooterContent(left: string, right: string, innerWidth: number): string {
 	const leftWidth = visibleWidth(left);
 	const rightWidth = visibleWidth(right);
@@ -132,6 +159,7 @@ export function installFooter(
 		setRequestRender: (fn: (() => void) | undefined) => void;
 		scheduleProjectRefresh: (ctx: ExtensionContext) => void;
 		setExtensionStatusesGetter?: (fn: (() => ReadonlyMap<string, string>) | undefined) => void;
+		getThinkingLevel?: () => string | undefined;
 	},
 ): void {
 	ctx.ui.setFooter((tui, theme, footerData) => {
@@ -209,11 +237,34 @@ export function installFooter(
 				);
 
 				const left = [cwdLabel, branchLabel, runtimeLabel].filter(Boolean).join(" ");
+				const thinkingLevel = hooks.getThinkingLevel?.();
 				const right = [
+					renderStyleForSource(
+						theme,
+						colorSource,
+						config.colors.editorModel ?? config.colors.tokens,
+						state.modelLabel,
+					),
+					renderStyleForSource(
+						theme,
+						colorSource,
+						config.colors.editorProvider ?? config.colors.tokens,
+						state.providerLabel,
+					),
+					thinkingLevel && thinkingLevel !== "off"
+						? renderStyleForSource(
+								theme,
+								colorSource,
+								thinkingStyle(config, thinkingLevel),
+								thinkingLevel,
+							)
+						: "",
 					renderStyleForSource(theme, colorSource, contextColor, state.contextLabel),
 					renderStyleForSource(theme, colorSource, config.colors.tokens, state.tokenLabel),
 					renderStyleForSource(theme, colorSource, config.colors.cost, state.costLabel),
-				].join(separator);
+				]
+					.filter(Boolean)
+					.join(separator);
 				const extensionStatuses = collectExtensionStatusSegments(
 					footerData.getExtensionStatuses(),
 					config,

@@ -8,3 +8,4 @@ npm-debug.log*
 bun.lock
 bun.lockb
 *.tgz
+.pi/
