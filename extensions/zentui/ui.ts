@@ -14,11 +14,6 @@ type AutocompleteEditorInternals = {
 	isShowingAutocomplete?: () => boolean;
 };
 
-type EditorMeta = {
-	modelLabel: string;
-	providerLabel: string;
-};
-
 function clampRenderedLines(lines: string[], width: number): string[] {
 	const maxWidth = Math.max(0, width);
 	return lines.map((line) => truncateToWidth(line, maxWidth, ""));
@@ -34,15 +29,13 @@ export class PolishedEditor extends CustomEditor {
 		keybindings: KeybindingsManager,
 		uiTheme: Theme,
 		getConfig: () => PolishedTuiConfig,
-		getModelMeta: () => EditorMeta,
-		getThinkingLevel: () => string | undefined,
+		_getModelMeta: () => { modelLabel: string; providerLabel: string },
+		_getThinkingLevel: () => string | undefined,
 	) {
 		super(tui, theme, keybindings, { paddingX: 0 });
 		this.borderColor = (text: string) => safeThemeFg(uiTheme, "border", text);
 		this.uiTheme = uiTheme;
 		this.getConfig = getConfig;
-		void getModelMeta;
-		void getThinkingLevel;
 	}
 
 	private fillLine(content: string, width: number): string {
@@ -50,7 +43,6 @@ export class PolishedEditor extends CustomEditor {
 		const pad = " ".repeat(Math.max(0, width - visibleWidth(truncated)));
 		return `${truncated}${pad}`;
 	}
-
 
 	render(width: number): string[] {
 		if (width <= 2) {
@@ -90,8 +82,6 @@ export class PolishedEditor extends CustomEditor {
 		const config = this.getConfig();
 		const colorSource = config.colorSources.editor;
 		const editorLines = editorFrame.slice(1, -1);
-
-		const rail = "";
 		const top = renderStyleForSourceOrFallback(
 			this.uiTheme,
 			colorSource,
@@ -108,7 +98,9 @@ export class PolishedEditor extends CustomEditor {
 		);
 		const renderedLines = [
 			top,
-			...editorLines.map((line) => `${rail}${this.fillLine(line, innerWidth)}`),
+			...editorLines.map((line, index) =>
+				this.fillLine(index === 0 ? `❯ ${line}` : `  ${line}`, width),
+			),
 			bottom,
 			...autocompleteLines,
 		];

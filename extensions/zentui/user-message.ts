@@ -115,10 +115,9 @@ function renderZentuiUserMessage(
 				"─".repeat(width),
 			)
 		: "─".repeat(width);
-
 	return [
 		truncateToWidth(border, width, ""),
-		...contentLines.map((line) => renderPromptBoxLine(line, width)),
+		...contentLines.map((line) => renderPromptBoxLine(line, contentWidth)),
 		truncateToWidth(border, width, ""),
 	];
 }

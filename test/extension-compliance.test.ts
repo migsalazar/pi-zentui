@@ -305,7 +305,7 @@ describe("Pi docs compliance", () => {
 		expect(stripTestTags(lines[0])).toMatch(/^─+$/);
 		expect(stripTestTags(lines.at(-1) ?? "")).toMatch(/^─+$/);
 		const raw = new UserMessageComponent("hello").render(80).join("\n");
-		expect(raw).toMatch(/\[accent\]│|\u001b\[34m│\u001b\[0m/);
+		expect(raw).not.toMatch(/\[accent\]│|\u001b\[34m│\u001b\[0m/);
 		expect(raw).toMatch(/\[borderMuted\]────|\u001b\[90m────/);
 		expect(rendered).toContain("[userMessageText]");
 		expect(rendered).toContain("[bold]");
@@ -453,13 +453,13 @@ describe("Pi docs compliance", () => {
 		const first = loadExtension();
 		await emit(first, "session_start", makeContext({ ui: makeUi("first:") }));
 		const firstRender = new UserMessageComponent("hello").render(80).join("\n");
-		expect(firstRender).toMatch(/\[first:accent\]│|\u001b\[34m│\u001b\[0m/);
+		expect(firstRender).toContain("[first:borderMuted]────");
 
 		const second = loadExtension();
 		await emit(second, "session_start", makeContext({ ui: makeUi("second:") }));
 		const secondRender = new UserMessageComponent("hello").render(80).join("\n");
-		expect(secondRender).not.toContain("[first:accent]│");
-		expect(secondRender).toMatch(/\[second:accent\]│|\u001b\[34m│\u001b\[0m/);
+		expect(secondRender).not.toContain("[first:borderMuted]────");
+		expect(secondRender).toContain("[second:borderMuted]────");
 	});
 
 	it("keeps custom footer output within the requested render width", async () => {
@@ -699,12 +699,13 @@ describe("Pi docs compliance", () => {
 			getExtensionStatuses: () =>
 				new Map<string, string>([["long", "middle-status-is-far-too-long"]]),
 		});
-		const line = footer?.render(44)[0] ?? "";
+		const lines = footer?.render(44) ?? [];
+		const usageLine = lines[1] ?? "";
 
-		expect(line).toContain("1%/200k");
-		expect(line).toContain("↑1 ↓2");
-		expect(line).toContain("$0.001");
-		expect(visibleWidth(line)).toBeLessThanOrEqual(44);
+		expect(usageLine).toContain("1%/200k");
+		expect(usageLine).toContain("↑1 ↓2");
+		expect(usageLine).toContain("$0.001");
+		expect(lines.every((line) => visibleWidth(line) <= 44)).toBe(true);
 	});
 
 	it("does not leave an extra branch gap when the git icon is empty", () => {
@@ -760,7 +761,7 @@ describe("Pi docs compliance", () => {
 		expect(lines.every((line) => visibleWidth(line) <= 1)).toBe(true);
 	});
 
-	it("renders editor rails with theme accent and borderMuted borders", () => {
+	it("renders editor borders without prompt-area rails or model metadata", () => {
 		const editor = new PolishedEditor(
 			{ requestRender() {}, terminal: { rows: 24, cols: 120 } } as never,
 			{ borderColor: (text: string) => text, selectList: {} } as never,
@@ -774,13 +775,13 @@ describe("Pi docs compliance", () => {
 		const rendered = editor.render(120).join("\n");
 
 		expect(rendered).toContain("[borderMuted]────");
-		expect(rendered).toContain("[muted]high");
-		expect(rendered).toContain("[accent]│");
-		expect(rendered).toContain("[accent]claude-sonnet");
-		expect(rendered).toContain("[text]Anthropic");
+		expect(rendered).not.toContain("[muted]high");
+		expect(rendered).not.toContain("[accent]│");
+		expect(rendered).not.toContain("[accent]claude-sonnet");
+		expect(rendered).not.toContain("[text]Anthropic");
 	});
 
-	it("keeps terminal editor chrome available when configured", () => {
+	it("keeps terminal editor borders available when configured", () => {
 		const editor = new PolishedEditor(
 			{ requestRender() {}, terminal: { rows: 24, cols: 120 } } as never,
 			{ borderColor: (text: string) => text, selectList: {} } as never,
@@ -794,12 +795,12 @@ describe("Pi docs compliance", () => {
 		const rendered = editor.render(120).join("\n");
 
 		expect(rendered).toContain("\u001b[90m────");
-		expect(rendered).toContain("\u001b[34m│\u001b[0m");
-		expect(rendered).toContain("\u001b[34mclaude-sonnet\u001b[0m");
-		expect(rendered).toContain("[text]Anthropic");
+		expect(rendered).not.toContain("\u001b[34m│\u001b[0m");
+		expect(rendered).not.toContain("\u001b[34mclaude-sonnet\u001b[0m");
+		expect(rendered).not.toContain("[text]Anthropic");
 	});
 
-	it("renders custom editor accent, border, model, provider, and thinking colors", () => {
+	it("renders custom editor border color without prompt-area metadata colors", () => {
 		const editor = new PolishedEditor(
 			{ requestRender() {}, terminal: { rows: 24, cols: 120 } } as never,
 			{ borderColor: (text: string) => text, selectList: {} } as never,
@@ -820,14 +821,14 @@ describe("Pi docs compliance", () => {
 
 		const rendered = editor.render(120).join("\n");
 
-		expect(rendered).toContain("[warning]│");
+		expect(rendered).not.toContain("[warning]│");
 		expect(rendered).toContain("[error]────");
-		expect(rendered).toContain("[success]claude-sonnet");
-		expect(rendered).toContain("[syntaxKeyword]Anthropic");
-		expect(rendered).toContain("[thinkingHigh]high");
+		expect(rendered).not.toContain("[success]claude-sonnet");
+		expect(rendered).not.toContain("[syntaxKeyword]Anthropic");
+		expect(rendered).not.toContain("[thinkingHigh]high");
 	});
 
-	it("uses the shared editorThinking color when a level-specific color is absent", () => {
+	it("does not render thinking metadata inside the prompt area", () => {
 		const editor = new PolishedEditor(
 			{ requestRender() {}, terminal: { rows: 24, cols: 120 } } as never,
 			{ borderColor: (text: string) => text, selectList: {} } as never,
@@ -840,7 +841,7 @@ describe("Pi docs compliance", () => {
 
 		const rendered = editor.render(120).join("\n");
 
-		expect(rendered).toContain("[thinkingText]low");
+		expect(rendered).not.toContain("[thinkingText]low");
 	});
 
 	it("applies custom editor accent and border colors to previous user messages", () => {
@@ -855,7 +856,7 @@ describe("Pi docs compliance", () => {
 
 		const rendered = new UserMessageComponent("hello").render(80).join("\n");
 
-		expect(rendered).toContain("[warning]│");
+		expect(rendered).not.toContain("[warning]│");
 		expect(rendered).toContain("[error]────");
 	});
 

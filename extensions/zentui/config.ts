@@ -71,8 +71,8 @@ export const configPath = join(getAgentDir(), "zentui.json");
 export const defaultConfig: PolishedTuiConfig = {
 	projectRefreshIntervalMs: DEFAULT_PROJECT_REFRESH_INTERVAL_MS,
 	icons: {
-		cwd: "󰝰",
-		git: "",
+		cwd: "",
+		git: "⎇",
 		ahead: "↑",
 		behind: "↓",
 		diverged: "⇕",

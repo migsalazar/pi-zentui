@@ -80,8 +80,13 @@ export function formatRuntimeSegment(
 }
 
 export function formatCwdLabel(cwd: string, cwdIcon: string): string {
-	const normalized = cwd.replace(/\\/g, "/").replace(/\/+$/, "");
-	const parts = normalized.split("/").filter(Boolean);
-	const last = parts[parts.length - 1] ?? cwd;
-	return cwdIcon ? `${cwdIcon} ${last}` : last;
+	const normalized = cwd.replace(/\\/g, "/").replace(/\/+$/, "") || "/";
+	const home = process.env.HOME?.replace(/\\/g, "/").replace(/\/+$/, "");
+	const label =
+		home && normalized === home
+			? "~"
+			: home && normalized.startsWith(`${home}/`)
+				? `~/${normalized.slice(home.length + 1)}`
+				: normalized;
+	return cwdIcon ? `${cwdIcon} ${label}` : label;
 }
