@@ -306,7 +306,7 @@ describe("Pi docs compliance", () => {
 		expect(stripTestTags(lines.at(-1) ?? "")).toMatch(/^─+$/);
 		const raw = new UserMessageComponent("hello").render(80).join("\n");
 		expect(raw).not.toMatch(/\[accent\]│|\u001b\[34m│\u001b\[0m/);
-		expect(raw).toMatch(/\[borderMuted\]────|\u001b\[90m────/);
+		expect(raw).toMatch(/\[text\]────|\u001b\[37m────/);
 		expect(rendered).toContain("[userMessageText]");
 		expect(rendered).toContain("[bold]");
 		expect(rendered).not.toContain("**zentui**");
@@ -393,14 +393,14 @@ describe("Pi docs compliance", () => {
 			() => configWithColorSources({ userMessages: "theme" }),
 		);
 		const themeRendered = new UserMessageComponent("hello").render(80).join("\n");
-		expect(themeRendered).toContain("[borderMuted]────");
+		expect(themeRendered).toContain("[text]────");
 
 		installUserMessageStyle(
 			() => makeTaggedTheme(),
 			() => configWithColorSources({ userMessages: "terminal" }),
 		);
 		const terminalRendered = new UserMessageComponent("hello").render(80).join("\n");
-		expect(terminalRendered).toContain("\u001b[90m────");
+		expect(terminalRendered).toContain("\u001b[37m────");
 	});
 
 	it("user-message cleanup disables patched rendering", () => {
@@ -409,7 +409,7 @@ describe("Pi docs compliance", () => {
 			() => defaultConfig,
 		);
 
-		expect(new UserMessageComponent("hello").render(80).join("\n")).toContain("[borderMuted]────");
+		expect(new UserMessageComponent("hello").render(80).join("\n")).toContain("[text]────");
 		const prototype = UserMessageComponent.prototype as unknown as Record<string, unknown>;
 		prototype.__zentuiUserMessageOriginalRender = (width: number) => [`original:${width}`];
 		cleanup();
@@ -453,13 +453,13 @@ describe("Pi docs compliance", () => {
 		const first = loadExtension();
 		await emit(first, "session_start", makeContext({ ui: makeUi("first:") }));
 		const firstRender = new UserMessageComponent("hello").render(80).join("\n");
-		expect(firstRender).toContain("[first:borderMuted]────");
+		expect(firstRender).toContain("[first:text]────");
 
 		const second = loadExtension();
 		await emit(second, "session_start", makeContext({ ui: makeUi("second:") }));
 		const secondRender = new UserMessageComponent("hello").render(80).join("\n");
-		expect(secondRender).not.toContain("[first:borderMuted]────");
-		expect(secondRender).toContain("[second:borderMuted]────");
+		expect(secondRender).not.toContain("[first:text]────");
+		expect(secondRender).toContain("[second:text]────");
 	});
 
 	it("keeps custom footer output within the requested render width", async () => {
@@ -516,7 +516,7 @@ describe("Pi docs compliance", () => {
 		});
 
 		expect(() => footer?.render(120)).not.toThrow();
-		expect(footer?.render(120).join("\n")).toContain("[muted]");
+		expect(footer?.render(120).join("\n")).toContain("[text]");
 	});
 
 	it("renders third-party statuses on the right by default in sorted order", () => {
@@ -774,7 +774,7 @@ describe("Pi docs compliance", () => {
 
 		const rendered = editor.render(120).join("\n");
 
-		expect(rendered).toContain("[borderMuted]────");
+		expect(rendered).toContain("[text]────");
 		expect(rendered).not.toContain("[muted]high");
 		expect(rendered).not.toContain("[accent]│");
 		expect(rendered).not.toContain("[accent]claude-sonnet");
@@ -794,7 +794,7 @@ describe("Pi docs compliance", () => {
 
 		const rendered = editor.render(120).join("\n");
 
-		expect(rendered).toContain("\u001b[90m────");
+		expect(rendered).toContain("\u001b[37m────");
 		expect(rendered).not.toContain("\u001b[34m│\u001b[0m");
 		expect(rendered).not.toContain("\u001b[34mclaude-sonnet\u001b[0m");
 		expect(rendered).not.toContain("[text]Anthropic");

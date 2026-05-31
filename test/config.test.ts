@@ -21,11 +21,14 @@ describe("mergeConfig", () => {
 		const config = mergeConfig({});
 		expect(config.projectRefreshIntervalMs).toBe(30_000);
 		expect(config.colors.gitBranch).toBe("bold purple");
-		expect(config.colors.contextNormal).toBe("bright-black");
-		expect(config.colors.tokens).toBe("bright-black");
+		expect(config.colors.contextNormal).toBe("white");
+		expect(config.colors.tokens).toBe("white");
+		expect(config.colors.editorModel).toBe("white");
+		expect(config.colors.editorProvider).toBe("white");
+		expect(config.colors.separator).toBe("white");
 		expect(config.colors.extensionStatus).toBe("bright-black");
 		expect(config.colors.editorAccent).toBeUndefined();
-		expect(config.colors.editorBorder).toBeUndefined();
+		expect(config.colors.editorBorder).toBe("white");
 		expect(config.colorSources).toEqual({
 			starship: "theme",
 			editor: "theme",
@@ -167,7 +170,7 @@ describe("mergeConfig", () => {
 		expect(config.colors.gitStatus).toBe(defaultConfig.colors.gitStatus);
 		expect(config.colors.separator).toBe("dimmed");
 		expect(config.colors.editorAccent).toBeUndefined();
-		expect(config.colors.editorBorder).toBeUndefined();
+		expect(config.colors.editorBorder).toBe("white");
 		expect(config.colors.editorThinkingHigh).toBe("thinkingHigh");
 		expect(config.colorSources).toEqual({
 			starship: "theme",
