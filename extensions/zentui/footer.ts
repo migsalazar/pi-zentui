@@ -213,7 +213,7 @@ export function installFooter(
 					contextUsage?.percent !== null && contextUsage?.percent !== undefined
 						? contextUsage.percent >= 90
 							? config.colors.contextError
-							: contextUsage.percent >= 70
+							: contextUsage.percent >= 60
 								? config.colors.contextWarning
 								: config.colors.contextNormal
 						: config.colors.contextNormal;
