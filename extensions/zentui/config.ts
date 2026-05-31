@@ -87,8 +87,8 @@ export const defaultConfig: PolishedTuiConfig = {
 	},
 	colors: {
 		cwd: "#61AFEF",
-		gitBranch: "bold purple",
-		gitStatus: "bold red",
+		gitBranch: "purple",
+		gitStatus: "red",
 		contextNormal: "white",
 		contextWarning: "bold yellow",
 		contextError: "bold red",

@@ -20,7 +20,7 @@ describe("mergeConfig", () => {
 	it("defaults project refresh polling to 30 seconds and Starship styles", () => {
 		const config = mergeConfig({});
 		expect(config.projectRefreshIntervalMs).toBe(30_000);
-		expect(config.colors.gitBranch).toBe("bold purple");
+		expect(config.colors.gitBranch).toBe("purple");
 		expect(config.colors.contextNormal).toBe("white");
 		expect(config.colors.tokens).toBe("white");
 		expect(config.colors.editorModel).toBe("white");
