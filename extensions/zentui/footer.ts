@@ -7,11 +7,11 @@ import type { FooterState } from "./state";
 import { renderStyleForSource } from "./style";
 
 function layoutWidth(text: string): number {
-	return visibleWidth(
-		text
-			.replace(/\u001b\[[0-9;]*m/g, "")
-			.replace(/\[[A-Za-z][\w:-]*\]/g, ""),
-	);
+	return visibleWidth(text.replace(/\u001b\[[0-9;]*m/g, "").replace(/\[[A-Za-z][\w:-]*\]/g, ""));
+}
+
+function padEndToWidth(text: string, width: number): string {
+	return `${text}${" ".repeat(Math.max(0, width - layoutWidth(text)))}`;
 }
 
 function joinStatusTexts(statusTexts: string[], separator: string): string {
@@ -284,13 +284,26 @@ export function installFooter(
 				]
 					.filter(Boolean)
 					.join(modelSeparator);
+				const telemetrySeparator = renderStyleForSource(
+					theme,
+					colorSource,
+					config.colors.separator,
+					" ",
+				);
+				const lastTurnLabel = `Δ${state.lastTurnDurationLabel} ${state.lastTurnTokenLabel} ${state.lastTurnCacheReadLabel}`;
+				const sessionUsageLabel = `${renderStyleForSource(
+					theme,
+					colorSource,
+					config.colors.tokens,
+					`Σ${state.totalTokenCountLabel}`,
+				)} ${renderStyleForSource(theme, colorSource, config.colors.cost, state.costLabel)}`;
 				const usageRight = [
+					renderStyleForSource(theme, colorSource, config.colors.tokens, lastTurnLabel),
 					renderStyleForSource(theme, colorSource, contextColor, state.contextLabel),
-					renderStyleForSource(theme, colorSource, config.colors.tokens, state.tokenLabel),
-					renderStyleForSource(theme, colorSource, config.colors.cost, state.costLabel),
+					sessionUsageLabel,
 				]
 					.filter(Boolean)
-					.join(separator);
+					.join(telemetrySeparator);
 				const extensionStatuses = collectExtensionStatusSegments(
 					footerData.getExtensionStatuses(),
 					config,

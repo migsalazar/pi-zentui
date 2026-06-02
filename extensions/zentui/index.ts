@@ -1,3 +1,4 @@
+import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type {
 	ExtensionAPI,
 	ExtensionContext,
@@ -15,6 +16,13 @@ import {
 	saveExtensionStatusPlacement,
 } from "./config";
 import { installFooter } from "./footer";
+import {
+	buildCacheReadLabel,
+	buildCostLabel,
+	buildTokenLabel,
+	formatDuration,
+	getMessageUsageTotals,
+} from "./format";
 import { emptyGitStatus, readGitStatus } from "./git";
 import { type StopProjectRefreshInterval, startProjectRefreshInterval } from "./project-refresh";
 import { readRuntimeInfo } from "./runtime";
@@ -166,6 +174,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("agent_start", async (_event, ctx) => {
+		state.lastTurnStartedAt = Date.now();
 		refreshInteractiveState(ctx);
 	});
 
@@ -181,7 +190,18 @@ export default function (pi: ExtensionAPI) {
 		refreshInteractiveState(ctx);
 	});
 
-	pi.on("message_end", async (_event, ctx) => {
+	pi.on("message_end", async (event, ctx) => {
+		if (event.message.role === "assistant") {
+			const message = event.message as AssistantMessage;
+			const startedAt = state.lastTurnStartedAt;
+			if (startedAt !== undefined) {
+				state.lastTurnDurationLabel = formatDuration(Date.now() - startedAt);
+			}
+			const usageTotals = getMessageUsageTotals(message);
+			state.lastTurnTokenLabel = buildTokenLabel(usageTotals);
+			state.lastTurnCacheReadLabel = buildCacheReadLabel(message.usage?.cacheRead ?? 0);
+			state.lastTurnCostLabel = buildCostLabel(usageTotals);
+		}
 		refreshInteractiveState(ctx, true);
 	});
 

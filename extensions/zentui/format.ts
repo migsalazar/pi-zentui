@@ -10,6 +10,19 @@ export type UsageTotals = {
 	cost: number;
 };
 
+export function formatDuration(ms: number): string {
+	const totalSeconds = Math.max(0, Math.round(ms / 1000));
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = secondsLabel(totalSeconds % 60);
+
+	if (minutes <= 0) return seconds;
+	return `${minutes}m ${seconds}`;
+}
+
+function secondsLabel(seconds: number): string {
+	return `${seconds.toString().padStart(2, "0")}s`;
+}
+
 export function formatCount(value: number): string {
 	if (value < 1000) return `${value}`;
 	if (value < 10_000) return `${(value / 1000).toFixed(1)}k`;
@@ -53,19 +66,35 @@ export function buildTokenLabel(totals: UsageTotals): string {
 	return `↑${formatCount(totals.input)} ↓${formatCount(totals.output)}`;
 }
 
+export function buildCacheReadLabel(cacheRead: number): string {
+	return `↻${formatCount(cacheRead)}`;
+}
+
 export function buildCostLabel(totals: UsageTotals): string {
 	return `$${totals.cost.toFixed(3)}`;
 }
 
+export function buildTotalTokenCountLabel(totals: UsageTotals): string {
+	return formatCount(totals.input + totals.output);
+}
+
+export function getMessageUsageTotals(message: AssistantMessage): UsageTotals {
+	return {
+		input: message.usage?.input ?? 0,
+		output: message.usage?.output ?? 0,
+		cost: message.usage?.cost?.total ?? 0,
+	};
+}
+
 export function buildContextLabel(ctx: ExtensionContext): string {
 	const usage = ctx.getContextUsage();
-	const contextWindow = ctx.model?.contextWindow ?? usage?.contextWindow;
 
-	if (!usage || !contextWindow || contextWindow <= 0) return "--";
+	if (!usage) return "--";
 
 	const percent =
 		usage.percent === null ? "?" : `${Math.max(0, Math.min(999, Math.round(usage.percent)))}%`;
-	return `${percent}/${formatCount(contextWindow)}`;
+	const tokens = usage.tokens === null ? "?" : formatCount(usage.tokens ?? 0);
+	return `${percent}≈${tokens}`;
 }
 
 export function formatRuntimeSegment(
